@@ -49,45 +49,55 @@ function ancd_dynamic_e2pdf_handler() {
 }
 */
 
-add_action('wpforms_process_before_save', 'ancd_auto_generate_student_id', 10, 4);
+add_action('wpforms_entry_save_data', 'ancd_auto_generate_student_id', 10, 3);
 
-function ancd_auto_generate_student_id($fields, $entry, $form_data, $entry_id) {
-    // Ensure this only runs for the correct form (replace 123 with your form ID)
+function ancd_auto_generate_student_id($fields, $entry, $form_data) {
+    // Run only for the correct form ID (replace 2997 with your form ID)
     if ($form_data['id'] != 2997) {
-        return;
+        return $fields;
     }
 
     // Define field IDs
-     $date_field_id = 53; // Replace with the ID of the date field (e.g., application date)
-     $passport_field_id = 54; // Replace with the ID of the passport number field
-     $student_id_field_id = 68; // Replace with the ID of the hidden student ID field
+    $date_field_id = 53; // ID of the date field
+    $passport_field_id = 54; // ID of the passport number field
+    $student_id_field_id = 68; // ID of the Single Line Text (Student ID) field
 
     // Check if both passport number and date fields are filled
     if (!empty($fields[$passport_field_id]['value']) && !empty($fields[$date_field_id]['value'])) {
-        // Get the passport number
+        // Get the passport number and first three characters
         $passport_number = sanitize_text_field($fields[$passport_field_id]['value']);
-		$first_three = substr($passport_number, 0, 3);
+        $first_three = substr($passport_number, 0, 3);
 
-        // Get the date from the date field and parse it (expecting DD/MM/YYYY format)
+        // Get the date value and parse it assuming DD/MM/YYYY format
         $date_value = sanitize_text_field($fields[$date_field_id]['value']);
-        $date_parts = explode('/', $date_value); // Splits date as [DD, MM, YYYY]
-        
-        // Assign year and month based on parsed date
-        $month = $date_parts[1];
-        $year = $date_parts[2];
+        error_log("Raw Date Value: " . $date_value); // Log for debugging
 
-        // Generate the student ID using passport number, year, and month
-        $student_id = $first_three . $month . $year ;
+        $date_parts = explode('/', $date_value);
 
-		// Debugging Output to check generated ID (only for testing, remove when done)
-        error_log("Generated Student ID: " . $student_id);
+        // Ensure correct format: check if date parts array has 3 elements and validate the year
+        if (count($date_parts) == 3 && strlen($date_parts[2]) == 4) {
+            $day = $date_parts[0];
+            $month = $date_parts[1];
+            $year = substr($date_parts[2], -2); // Get the last two digits of the year
 
-        // Populate the student ID field
-        $fields[$student_id_field_id]['value'] = $student_id;
+            // Generate the student ID using the first three characters of passport, month, and last two digits of the year
+            $student_id = $first_three . $month . $year;
+
+            // Update the entry field with the generated student ID
+            $fields[$student_id_field_id]['value'] = $student_id;
+
+            // Log the generated ID for verification
+            error_log("Generated Student ID: " . $student_id);
+        } else {
+            error_log("Error: Date field does not match DD/MM/YYYY format.");
+        }
+    } else {
+        error_log("Error: Passport number or date field is empty.");
     }
 
     return $fields;
 }
+
 
 
 
