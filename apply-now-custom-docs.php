@@ -99,7 +99,18 @@ function ancd_auto_generate_student_id($fields, $entry, $form_data) {
 }
 
 
-
+/*
+function display_verification_pdf() {
+    if ( isset( $_GET['entry_id'] ) ) {
+        $entry_id = intval( $_GET['entry_id'] ); // Sanitize input
+        return do_shortcode( '[e2pdf-download id="4" dataset="' . $entry_id . '"]' );
+    } else {
+        return 'No document found.';
+    }
+}
+add_shortcode( 'verification_pdf', 'display_verification_pdf' );
+[verification_pdf]
+*/
 
 // Function to create E2PDF link for specific entry and document type
 function ancd_get_e2pdf_link($entry_id, $document_type) {
