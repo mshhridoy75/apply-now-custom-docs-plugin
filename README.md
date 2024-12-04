@@ -1,6 +1,3 @@
-Here is the updated draft for the README file:
-
----
 
 # Apply Now Custom Docs Plugin
 
