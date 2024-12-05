@@ -37,8 +37,87 @@ function ancd_document_page() {
     // Display documents here
 }*/
 
+/*add_shortcode('ancd_dynamic_e2pdf', 'ancd_dynamic_e2pdf_handler');
+
+function ancd_dynamic_e2pdf_handler() {
+    // Get template ID and entry ID from the URL parameters
+    $template_id = isset($_GET['template_id']) ? sanitize_text_field($_GET['template_id']) : '';
+    $entry_id = isset($_GET['entry_id']) ? sanitize_text_field($_GET['entry_id']) : '';
+    $form_id = '2997'; // Replace with your actual WPForms form ID
+
+    if (!$template_id || !$entry_id) {
+        return '<p>Invalid document request.</p>';
+    }
+ echo "<p>Template ID: $template_id</p>";
+    echo "<p>Entry ID: $entry_id</p>";
+    
+    // Dynamically generate the E2PDF shortcode
+    return do_shortcode('[e2pdf-download id="' . $template_id . '" dataset="wpforms-' . $form_id . '-' . $entry_id . '"]');
+}
+*/
+
+add_action('wpforms_entry_save_data', 'ancd_auto_generate_student_id', 10, 3);
+
+function ancd_auto_generate_student_id($fields, $entry, $form_data) {
+    // Run only for the correct form ID (replace 2997 with your form ID)
+    if ($form_data['id'] != 2997) {
+        return $fields;
+    }
+
+    // Define field IDs
+    $date_field_id = 53; // ID of the date field
+    $passport_field_id = 54; // ID of the passport number field
+    $student_id_field_id = 68; // ID of the Single Line Text (Student ID) field
+
+    // Check if both passport number and date fields are filled
+    if (!empty($fields[$passport_field_id]['value']) && !empty($fields[$date_field_id]['value'])) {
+        // Get the passport number and first three characters
+        $passport_number = sanitize_text_field($fields[$passport_field_id]['value']);
+        $first_three = substr($passport_number, 0, 3);
+
+        // Get the date value and parse it assuming DD/MM/YYYY format
+        $date_value = sanitize_text_field($fields[$date_field_id]['value']);
+        error_log("Raw Date Value: " . $date_value); // Log for debugging
+
+        $date_parts = explode('/', $date_value);
+
+        // Ensure correct format: check if date parts array has 3 elements and validate the year
+        if (count($date_parts) == 3 && strlen($date_parts[2]) == 4) {
+            $day = $date_parts[0];
+            $month = $date_parts[1];
+            $year = substr($date_parts[2], -2); // Get the last two digits of the year
+
+            // Generate the student ID using the first three characters of passport, month, and last two digits of the year
+            $student_id = $first_three . $month . $year;
+
+            // Update the entry field with the generated student ID
+            $fields[$student_id_field_id]['value'] = $student_id;
+
+            // Log the generated ID for verification
+            error_log("Generated Student ID: " . $student_id);
+        } else {
+            error_log("Error: Date field does not match DD/MM/YYYY format.");
+        }
+    } else {
+        error_log("Error: Passport number or date field is empty.");
+    }
+
+    return $fields;
+}
 
 
+/*
+function display_verification_pdf() {
+    if ( isset( $_GET['entry_id'] ) ) {
+        $entry_id = intval( $_GET['entry_id'] ); // Sanitize input
+        return do_shortcode( '[e2pdf-download id="4" dataset="' . $entry_id . '"]' );
+    } else {
+        return 'No document found.';
+    }
+}
+add_shortcode( 'verification_pdf', 'display_verification_pdf' );
+[verification_pdf]
+*/
 
 // Function to create E2PDF link for specific entry and document type
 function ancd_get_e2pdf_link($entry_id, $document_type) {
@@ -112,6 +191,6 @@ function ancd_add_custom_buttons_to_wpforms_entry($entry) {
         });
         
     </script> 
- <?php
+    
+    <?php
 }
-
