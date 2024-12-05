@@ -1,9 +1,16 @@
 <?php
 /**
  * Plugin Name: Apply Now Custom Docs
+ * Plugin URI: https://wordpress.org/plugins/apply-now-custom-docs/
  * Description: Custom document generation for the Apply Now form.
  * Version: 1.0
+ * Requires at least: 5.0
+ * Requires PHP: 7.4
  * Author: Msh Hridoy
+ * License: GPLv3
+ * License URI: https://www.gnu.org/licenses/gpl-3.0.html
+ * Update URI: https://github.com/mshhridoy75/apply-now-custom-docs-plugin
+ * Text Domain: ancd
  */
 /*
 // Include necessary files
